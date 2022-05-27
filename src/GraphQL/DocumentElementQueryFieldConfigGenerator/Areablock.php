@@ -17,19 +17,22 @@ namespace Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementQueryFieldConfigGe
 
 use Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\AreablockDataType;
 use Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\AreablockType;
+use Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\BrickDataType;
 use Pimcore\Bundle\DataHubBundle\GraphQL\Service;
 
 class Areablock extends Base
 {
     protected $areablockDataType;
+    protected BrickDataType $brickDataType;
 
     /**
      * @param Service $graphQlService
      * @param AreablockDataType $areablockDataType
      */
-    public function __construct(Service $graphQlService, AreablockDataType $areablockDataType)
+    public function __construct(Service $graphQlService, AreablockDataType $areablockDataType, BrickDataType $brickDataType)
     {
         $this->areablockDataType = $areablockDataType;
+        $this->brickDataType = $brickDataType;
         parent::__construct($graphQlService);
     }
 
@@ -38,6 +41,6 @@ class Areablock extends Base
      */
     public function getFieldType()
     {
-        return \Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\AreablockType::getInstance($this->areablockDataType);
+        return \Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\AreablockType::getInstance($this->areablockDataType, $this->brickDataType);
     }
 }

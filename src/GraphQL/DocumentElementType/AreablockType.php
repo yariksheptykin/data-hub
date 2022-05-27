@@ -18,13 +18,20 @@ namespace Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use Pimcore\Bundle\DataHubBundle\GraphQL\DocumentType\DocumentElementType;
+use Pimcore\Model\Document\Editable;
 use Pimcore\Model\Document\Editable\Areablock;
 
 class AreablockType extends ObjectType
 {
     protected static $instance;
 
-    public static function getInstance(AreablockDataType $areablockDataType)
+    public function __construct(array $config)
+    {
+        parent::__construct($config);
+    }
+
+    public static function getInstance(AreablockDataType $areablockDataType, BrickDataType $documentBrickType)
     {
         if (!self::$instance) {
             $config =
@@ -49,13 +56,29 @@ class AreablockType extends ObjectType
                         ],
                         'data' => [
                             'type' => Type::listOf($areablockDataType),
+
                             'resolve' => static function ($value = null, $args = [], $context = [], ResolveInfo $resolveInfo = null) {
                                 if ($value instanceof Areablock) {
                                     return $value->getData();
                                 }
                             }
                         ],
-
+                        'bricks' => [
+                            'args' => ['brickType' => ['type' => Type::nonNull(Type::string()), 'description' => 'Type of the brick']],
+                            'type' => Type::listOf($documentBrickType),
+                            'resolve' => static function ($value = null, $args = [], $context = [], ResolveInfo $resolveInfo = null) {
+                                if ($value instanceof Areablock) {
+                                    $data = $value->getData();
+                                    return array_values(
+                                        array_filter(
+                                            array_map(fn(array $brickData) => array_merge($brickData, ['areablock' => $value]), $data),
+                                            fn (array $brickData) => $brickData['type'] === $args['brickType']
+                                        )
+                                    );
+                                }
+                                return null;
+                            }
+                        ],
                     ],
                 ];
             self::$instance = new static($config);
