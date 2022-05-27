@@ -178,6 +178,7 @@ services:
   Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\LinkDataType: ~
 
   Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\AreablockDataType: ~
+  Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\BrickDataType: ~
 
   Pimcore\Bundle\DataHubBundle\GraphQL\DocumentElementType\ScheduledblockDataType: ~
 
