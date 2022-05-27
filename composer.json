@@ -1,8 +1,11 @@
 {
-  "name": "pimcore/data-hub",
+  "name": "yariksheptykin/data-hub",
   "license": "GPL-3.0+",
   "type": "pimcore-bundle",
-  "description": "Pimcore Datahub",
+  "description": "Experimental Fork of Pimcore Datahub! Use at your own risk!",
+  "replace": {
+    "pimcore/data-hub": "^1.0"
+  },
   "config": {
       "sort-packages": true,
       "preferred-install": {
