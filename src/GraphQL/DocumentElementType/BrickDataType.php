@@ -83,6 +83,18 @@ class BrickDataType extends ObjectType
                             }
                         }
                     ],
+                    'order' => [
+                        'type' => Type::int(),
+                        'resolve' => static function ($value = null, $args = [], $context = [], ResolveInfo $resolveInfo = null) {
+                            if (is_array($value) && key_exists('areablock', $value) && $value['areablock'] instanceof Areablock) {
+                                $areablock = $value['areablock'];
+                                $data = $areablock->getData();
+                                $typeKeyList = array_values(array_map(fn (array $a) => $a['type'].$a['key'], $data));
+                                return array_search($value['type'].$value['key'], $typeKeyList);
+                            }
+                            return null;
+                        }
+                    ],
                     'elements' => [
                         'type' => Type::listOf($documentElementType),
                         'resolve' => static function ($value = null, $args = [], $context = [], ResolveInfo $resolveInfo = null) {
