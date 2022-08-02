@@ -32,6 +32,7 @@ use Pimcore\Model\DataObject\AbstractObject;
 use Pimcore\Model\DataObject\ClassDefinition;
 use Pimcore\Model\DataObject\Listing;
 use Pimcore\Model\DataObject\Service;
+use Pimcore\Model\Translation;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class QueryType
@@ -227,6 +228,36 @@ class QueryType
     }
 
     /**
+     * @throws \Exception
+     */
+    public function resolveTranslationGetter(mixed $value = null, array $args = [], array $context = [], ResolveInfo $resolveInfo = null): array
+    {
+        if (empty($args['key'])) {
+            throw new \Exception('Argument key is mandatory');
+        }
+
+        $domain = 'messages';
+        if (!empty($args['domain'])) {
+            $domain = $args['domain'];
+        }
+
+        $languages = [];
+        if (!empty($args['languages'])) {
+            $languages = str_replace(' ', '', $args['languages']);
+            $languages = explode(',', $languages);
+        }
+
+        $translation = Translation::getByKey($args['key'], $domain, false, false, $languages);
+        if (!$translation) {
+            return [];
+        }
+
+        $fieldHelper = $this->getGraphQlService()->getObjectFieldHelper();
+
+        return $fieldHelper->extractData($data, $translation, $args, $context, $resolveInfo);
+    }
+
+    /**
      * @param mixed $value
      * @param array $args
      * @param array $context
@@ -279,7 +310,7 @@ class QueryType
 
         $objectList->setObjectTypes([AbstractObject::OBJECT_TYPE_OBJECT, AbstractObject::OBJECT_TYPE_FOLDER, AbstractObject::OBJECT_TYPE_VARIANT]);
         $objectList->setLimit(1);
-        $objectList->setUnpublished(1);
+        $objectList->setUnpublished(true);
         $objectList = $objectList->load();
         if (!$objectList) {
             $errorMessage = $this->createArgumentErrorMessage($isFullpathSet, $isIdSet, $args);
@@ -422,9 +453,10 @@ class QueryType
             $conditionParts[] = '(' . $sqlListCondition . ')';
         }
 
-        // check permissions
-        $workspacesTableName = 'plugin_datahub_workspaces_object';
-        $conditionParts[] = ' (
+        if (!$configuration->skipPermisssionCheck()) {
+            // check permissions
+            $workspacesTableName = 'plugin_datahub_workspaces_object';
+            $conditionParts[] = ' (
             (
                 SELECT `read` from ' . $db->quoteIdentifier($workspacesTableName) . '
                 WHERE ' . $db->quoteIdentifier($workspacesTableName) . '.configuration = ' . $db->quote($configuration->getName()) . '
@@ -440,7 +472,8 @@ class QueryType
                 ORDER BY LENGTH(' . $db->quoteIdentifier($workspacesTableName) . '.cpath) DESC
                 LIMIT 1
             )=1
-        )';
+            )';
+        }
 
         if (isset($args['filter'])) {
             $filter = json_decode($args['filter'], false);

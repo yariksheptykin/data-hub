@@ -337,6 +337,28 @@ class ConfigController extends \Pimcore\Bundle\AdminBundle\Controller\AdminContr
                 $config['schema']['specialEntities']['object_folder']['create'] ?? false,
                 $config['schema']['specialEntities']['object_folder']['update'] ?? false,
                 $config['schema']['specialEntities']['object_folder']['delete'] ?? false
+            ),
+            new SpecialEntitySetting(
+                'translation',
+                true,
+                false,
+                false,
+                false,
+                $config['schema']['specialEntities']['translation_listing']['read'] ?? false,
+                $config['schema']['specialEntities']['translation_listing']['create'] ?? false,
+                $config['schema']['specialEntities']['translation_listing']['update'] ?? false,
+                $config['schema']['specialEntities']['translation_listing']['delete'] ?? false
+            ),
+            new SpecialEntitySetting(
+                'translation_listing',
+                true,
+                false,
+                false,
+                false,
+                $config['schema']['specialEntities']['translation_listing']['read'] ?? false,
+                $config['schema']['specialEntities']['translation_listing']['create'] ?? false,
+                $config['schema']['specialEntities']['translation_listing']['update'] ?? false,
+                $config['schema']['specialEntities']['translation_listing']['delete'] ?? false
             )
         ];
 
@@ -435,6 +457,10 @@ class ConfigController extends \Pimcore\Bundle\AdminBundle\Controller\AdminContr
 
                     $dataDecoded['schema']['specialEntities'] = $transformedEntities;
                 }
+            }
+
+            if (isset($dataDecoded['security'])) {
+                $dataDecoded['security']['apikey'] = explode("\n", trim($dataDecoded['security']['apikey'] ?? '', "\n"));
             }
 
             $config->setConfiguration($dataDecoded);

@@ -69,8 +69,8 @@ class Configuration extends AbstractModel
     protected $modificationDate;
 
     /**
-     * @param string $type
-     * @param string $path
+     * @param string|null $type
+     * @param string|null $path
      * @param string|null $name
      * @param array|null $configuration
      */
@@ -231,7 +231,7 @@ class Configuration extends AbstractModel
     }
 
     /**
-     * @param string $path
+     * @param string|null $path
      */
     public function setPath($path): void
     {
@@ -287,9 +287,10 @@ class Configuration extends AbstractModel
 
         $securityConfig = $this->getSecurityConfig();
         if (($this->configuration['general']['active'] ?? false) && isset($securityConfig['method']) && $securityConfig['method'] === self::SECURITYCONFIG_AUTH_APIKEY) {
-            $apikey = $securityConfig['apikey'] ?? '';
-            if (strlen($apikey) < 16) {
-                throw new \Exception('API key does not satisfy the minimum length of 16 characters');
+            foreach ($securityConfig['apikey'] as $apiKey) {
+                if (strlen($apiKey) < 16) {
+                    throw new \Exception('API key ' . $apiKey . ' does not satisfy the minimum length of 16 characters');
+                }
             }
         }
 

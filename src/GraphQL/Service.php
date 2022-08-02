@@ -39,6 +39,7 @@ use Pimcore\Bundle\DataHubBundle\GraphQL\Query\Operator\Factory\OperatorFactoryI
 use Pimcore\Bundle\DataHubBundle\GraphQL\Query\Value\DefaultValue;
 use Pimcore\Bundle\DataHubBundle\PimcoreDataHubBundle;
 use Pimcore\Cache\Runtime;
+use Pimcore\DataObject\GridColumnConfig\ConfigElementInterface;
 use Pimcore\Localization\LocaleServiceInterface;
 use Pimcore\Model\Asset;
 use Pimcore\Model\DataObject\AbstractObject;
@@ -105,6 +106,8 @@ class Service
      */
     protected $csFeatureTypeGeneratorFactories;
 
+    protected ContainerInterface $translationTypeGeneratorFactories;
+
     /**
      * @var array
      */
@@ -170,6 +173,8 @@ class Service
      */
     protected $assetDataTypes = [];
 
+    protected array $translationDataTypes = [];
+
     /**
      * @var array
      */
@@ -224,7 +229,8 @@ class Service
         ContainerInterface $documentElementMutationTypeGeneratorFactories,
         ContainerInterface $generalTypeGeneratorFactories,
         ContainerInterface $assetTypeGeneratorFactories,
-        ContainerInterface $csFeatureTypeGeneratorFactories
+        ContainerInterface $csFeatureTypeGeneratorFactories,
+        ContainerInterface $translationTypeGeneratorFactories
     ) {
         $this->assetFieldHelper = $assetFieldHelper;
         $this->documentFieldHelper = $documentFieldHelper;
@@ -241,6 +247,7 @@ class Service
         $this->generalTypeGeneratorFactories = $generalTypeGeneratorFactories;
         $this->assetTypeGeneratorFactories = $assetTypeGeneratorFactories;
         $this->csFeatureTypeGeneratorFactories = $csFeatureTypeGeneratorFactories;
+        $this->translationTypeGeneratorFactories = $translationTypeGeneratorFactories;
     }
 
     /**
@@ -465,6 +472,17 @@ class Service
     }
 
     /**
+     * @throws \Exception
+     */
+    public function buildTranslationType(string $typeName): mixed
+    {
+        $factory = $this->translationTypeGeneratorFactories->get($typeName);
+        $result = $factory->build();
+
+        return $result;
+    }
+
+    /**
      * @param string $typeName
      * @param array|null $attributes
      * @param ClassDefinition|null $class
@@ -485,7 +503,7 @@ class Service
     }
 
     /**
-     * @param array $nodeConfig
+     * @param ConfigElementInterface $nodeConfig
      *
      * @return mixed|DefaultValue
      *
@@ -693,6 +711,11 @@ class Service
         $this->assetDataTypes = $dataTypes;
     }
 
+    public function registerTranslationDataTypes(array $dataTypes)
+    {
+        $this->translationDataTypes = $dataTypes;
+    }
+
     /**
      * @param array $dataTypes
      */
@@ -841,6 +864,10 @@ class Service
         if ($fieldDefinition->isEmpty($value)) {
             $parent = \Pimcore\Model\DataObject\Service::hasInheritableParentObject($object);
             if (!empty($parent)) {
+                if (!($parent instanceof Concrete)) {
+                    $parent = Concrete::getById($parent->getId());
+                }
+
                 return self::getValueForObject($parent, $key, $brickType, $brickKey, $fieldDefinition, $context, $brickDescriptor);
             }
         }
