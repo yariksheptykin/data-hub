@@ -35,8 +35,15 @@ class DatahubConfigLocator
     public function locate(string $name, $params = [])
     {
         $result = [];
-        $dirs = [];
         $finder = new Finder();
+
+        $dirs = array_filter(
+            [
+                $_SERVER['PIMCORE_CONFIG_STORAGE_DIR_DATA_HUB'] ?? Dao::CONFIG_PATH,
+                PIMCORE_CUSTOM_CONFIGURATION_DIRECTORY . "/data-hub",
+            ],
+            'is_dir'
+        );
 
         if (is_dir(Dao::CONFIG_PATH)) {
             array_push($dirs, Dao::CONFIG_PATH);
